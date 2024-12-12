@@ -1,0 +1,37 @@
+name: Repository Insights
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Run weekly on Mondays
+  workflow_dispatch:      # Allow manual triggers
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history
+
+      - name: Generate Basic Stats
+        run: |
+          echo "## Repository Insights" > insights.md
+          echo "### Code Statistics" >> insights.md
+          echo "- Total Files: $(git ls-files | wc -l)" >> insights.md
+          echo "- Lines of Code: $(git ls-files | xargs wc -l | tail -1)" >> insights.md
+          echo "- Commits: $(git rev-list --count HEAD)" >> insights.md
+          echo "- Contributors: $(git shortlog -s -n --all | wc -l)" >> insights.md
+          
+          echo "### Node.js Specific" >> insights.md
+          echo "- Dependencies: $(jq '.dependencies | length' package.json)" >> insights.md
+          echo "- Dev Dependencies: $(jq '.devDependencies | length' package.json)" >> insights.md
+          echo "- Test Files: $(find test -name '*_test.js' | wc -l)" >> insights.md
+
+      - name: Create Issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: Weekly Repository Insights
+          content-filepath: ./insights.md
+          labels: |
+            metrics
+            documentation 

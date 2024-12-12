@@ -1,0 +1,41 @@
+# Basic Node.js CI workflow with AIOps principles
+name: Node.js AIOps Demo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Basic CI steps
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js 18.x
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+        
+    # Install with clean slate
+    - name: Install dependencies
+      run: npm ci
+        
+    # Basic automated testing
+    - name: Run tests
+      run: npm test
+      
+    # AIOps: Basic monitoring setup
+    - name: Configure monitoring
+      if: github.ref == 'refs/heads/main'
+      uses: azure/cli@v1
+      with:
+        inlineScript: |
+          # Set up basic CPU and memory alerts
+          az monitor metrics alert create \
+            --name "high-cpu-alert" \
+            --resource-group ${{ secrets.AZURE_RG }} \
+            --condition "avg cpu_percentage > 80"
