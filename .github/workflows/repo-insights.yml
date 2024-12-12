@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * 1'  # Run weekly on Mondays
   workflow_dispatch:      # Allow manual triggers
 
+permissions:
+  issues: write          # Add permission to create issues
+  contents: read         # Add permission to read repo contents
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
