@@ -17,6 +17,15 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+
+      - name: Update dependencies
+        run: npm install
+
       - name: Generate Basic Stats
         run: |
           echo "## Repository Insights" > insights.md
