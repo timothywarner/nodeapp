@@ -1,4 +1,4 @@
-name: Self-Healing CI/CD
+name: Self-Healing CI/CD v2
 on:
   push:
     branches: [ main ]
