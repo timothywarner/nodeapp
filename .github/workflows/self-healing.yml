@@ -1,0 +1,46 @@
+name: Self-Healing CI/CD
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Auto-retry npm install with exponential backoff
+      - name: Install with Auto-retry
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: |
+          for i in 1 2 3; do
+            echo "Attempt $i: npm install"
+            npm install && break
+            sleep $((2 ** $i))
+          done
+
+      # Self-healing test step
+      - name: Test with Auto-recovery
+        run: |
+          npm test || (
+            echo "Tests failed - attempting recovery"
+            rm -rf node_modules
+            npm install
+            npm test
+          )
+
+      # Monitor and alert
+      - name: Check Build Health
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: 'timothywarner',
+              repo: 'nodeapp',
+              title: '🚨 Build Failure - Auto-recovery Attempted',
+              body: 'Build failed after recovery attempts. Please investigate.'
+            })
